@@ -7,32 +7,9 @@ import pandas as pd
 from keras import optimizers
 from helper import read_x_train, fill_nan
 from attention import Attention
-
+from helper import simple_split, dataset_preparation_for_rnn
 FEATURE_DIM = 37
 EPOCH = 75
-
-
-def dataset_preparation(x_data: pd.DataFrame, y_data: pd.DataFrame):
-    trader_list = x_data['Trader'].unique()
-    trader_list.sort()
-    trader_data = [np.array(x_data[x_data['Trader'] == trader].sort_values(
-        by=['Day']).drop(['Trader'], axis=1)) for trader in trader_list]
-    label_data = list(y_data.sort_values(by=['Trader'])['type'].apply(
-        lambda x: [1, 0, 0] if x == 'HFT' else ([0, 1, 0] if x == 'MIX' else [0, 0, 1])))
-
-    return trader_data, label_data
-
-
-def simple_split(trader_data: list, label_data: list, ratio=0.1):
-    # split
-    import math
-    n = len(label_data)
-    test_n = math.floor(n * ratio)
-    trader_test_data = trader_data[:test_n]
-    label_test_data = label_data[:test_n]
-    trader_train_data = trader_data[test_n:]
-    label_train_data = label_data[test_n:]
-    return trader_train_data, label_train_data, trader_test_data, label_test_data
 
 
 def train_generator(trader_data, label_data):
@@ -49,7 +26,8 @@ x_train = read_x_train('data/AMF_train_X.csv',
 x_train = fill_nan(x_train)
 y_train = pd.read_csv('data/AMF_train_Y.csv')
 
-trader_train_data, label_train_data = dataset_preparation(x_train, y_train)
+trader_train_data, label_train_data = dataset_preparation_for_rnn(
+    x_train, y_train)
 trader_train_data, label_train_data, trader_test_data, label_test_data = simple_split(
     trader_train_data, label_train_data)
 
