@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+from collections import Counter
+import random
+import math
 
 
 def read_x_train(filename: str, includeTrader=True, includeShare=True, includeDay=True) -> pd.DataFrame:
@@ -88,7 +91,10 @@ def simple_split(trader_data: list, label_data: list, ratio=0.1):
         trader_train_data, label_train_data, trader_test_data, label_test_data
     """
     # split
-    import math
+
+    c = list(zip(trader_data, label_data))
+    random.shuffle(c)
+    trader_data, label_data = zip(*c)
     n = len(label_data)
     test_n = math.floor(n * ratio)
     trader_test_data = trader_data[:test_n]
@@ -97,7 +103,46 @@ def simple_split(trader_data: list, label_data: list, ratio=0.1):
     label_train_data = label_data[test_n:]
     return trader_train_data, label_train_data, trader_test_data, label_test_data
 
-# x = read_x_train('data/AMF_train_X.csv')
-# print(x)
-# x = fill_nan(x)
-# print(x)
+
+def limit_max_length(trader_data: list, label_data: list, max_length=32):
+    augmented_trader_data = []
+    augmented_label_data = []
+    for i, data in enumerate(trader_data):
+        if data.shape[0] > max_length:
+            p = 0
+            while p + max_length < data.shape[0]:
+                augmented_trader_data.append(data[p:p+max_length, :])
+                augmented_label_data.append(label_data[i])
+                p += max_length // 2
+            augmented_trader_data.append(data[p:, :])
+            augmented_label_data.append(label_data[i])
+        else:
+            augmented_trader_data.append(data)
+            augmented_label_data.append(label_data[i])
+
+    return augmented_trader_data, augmented_label_data
+
+
+def rebalance_data(trader_data: list, label_data: list, max_length=32):
+    c = Counter([tuple(data) for data in label_data])
+    most_common, max_n = c.most_common(1)[0]
+    possible_labels = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    rng = np.random.default_rng()
+    for possible_label in possible_labels:
+        if tuple(possible_label) == most_common:
+            continue
+        inds_for_this_labels = [i for i, label in enumerate(
+            label_data) if label == possible_label]
+        all_events = np.vstack([trader_data[i] for i in inds_for_this_labels])
+        for i in range(max_n-c[tuple(possible_label)]):
+            artificial_event = rng.choice(all_events, max_length)
+            artificial_event = artificial_event[np.argsort(
+                artificial_event[:, 1])]
+            trader_data.append(artificial_event)
+            label_data.append(possible_label)
+
+    return trader_data, label_data
+    # x = read_x_train('data/AMF_train_X.csv')
+    # print(x)
+    # x = fill_nan(x)
+    # print(x)
