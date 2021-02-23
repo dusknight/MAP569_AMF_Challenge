@@ -61,7 +61,7 @@ def fill_nan(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def dataset_preparation_for_rnn(x_data: pd.DataFrame, y_data: pd.DataFrame):
-    """Group by 'Trader' and sort according to the 'Day'. Then for each 'Trader' 
+    """Group by 'Trader' and sort according to the 'Day'. Then for each 'Trader'
        construct a list of vector. The y_data is encoding in one-hot.
     Args
         x_data: pd.DataFrame
@@ -146,3 +146,26 @@ def rebalance_data(trader_data: list, label_data: list, max_length=32):
     # print(x)
     # x = fill_nan(x)
     # print(x)
+
+#%%
+def trans2trader(x_data, y_pred):
+    res = list(zip(x_data.Trader, y_pred))
+    # res = [(row.Trader, y_pred[i])  for i, row in x_data.iterrows()]
+
+    dicts = {}
+    for row in res:
+        if row[0] in dicts:
+            dicts[row[0]].append(row[1])
+        else:
+            dicts[row[0]] = [row[1]]
+
+    final = {}
+    for k,v in dicts.items():
+        if len(np.where(np.array(v) == 0)[0])/len(v) > 0.85:
+            final[k] = 'HFT'
+        elif len(np.where(np.array(v) == 1)[0])/len(v) > 0.5:
+            final[k] = 'MIX'
+        else:
+            final[k] = 'NON HFT'
+    return final
+
