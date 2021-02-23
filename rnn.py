@@ -11,7 +11,7 @@ from helper import simple_split, dataset_preparation_for_rnn, limit_max_length, 
 from keras import backend as K
 
 FEATURE_DIM = 37
-EPOCH = 40
+EPOCH = 70
 LR = 5e-5
 MAX_LEN = 32
 STEPS_PER_EPOCH = 2000
@@ -55,8 +55,8 @@ class HistoryCheck(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
         self.f1_m.append(logs.get('f1_m'))
         self.val_f1_m.append(logs.get('val_f1_m'))
-        if logs.get('f1_m') > 0.1 and logs.get('val_f1_m') > 0.1:
-            model.save('model/model_' + str(epoch) + '.h5')
+        if logs.get('f1_m') > 0.9 and logs.get('val_f1_m') > 0.9:
+            self.model.save_weights('model/model_weight_'+str(epoch)+'.h5')
             res = []
             for i, trader in enumerate(trader_x_test_list):
                 x_test = trader_x_test_data[i].reshape(1, -1, FEATURE_DIM)
@@ -86,8 +86,8 @@ class HistoryCheck(keras.callbacks.Callback):
     def on_train_end(self, logs={}):
         output_name = 'log'
         with open('output/' + output_name + '.csv', 'w', encoding='utf-8') as f:
-            f.write(self.f1_m)
-            f.write(self.val_f1_m)
+            f.write(str(self.f1_m))
+            f.write(str(self.val_f1_m))
 
 
 def train_generator(trader_data, label_data):
@@ -143,7 +143,7 @@ model.compile(loss='categorical_crossentropy',
 model.fit(train_generator(trader_train_data, label_train_data), steps_per_epoch=STEPS_PER_EPOCH, validation_steps=STEPS_PER_EPOCH / 10,
           epochs=EPOCH, verbose=1, validation_data=train_generator(trader_test_data, label_test_data), callbacks=[historycheck])
 
-model.save('model/model_final.h5')
+model.save_weights('model/model_weight_final.h5')
 ####################################################
 # Evaluate
 ####################################################
