@@ -7,7 +7,7 @@ import pandas as pd
 from keras import optimizers
 from helper import read_x_train, fill_nan
 from attention import Attention
-from helper import simple_split, dataset_preparation_for_rnn, limit_max_length, rebalance_data
+from helper import simple_split, dataset_preparation_for_rnn, limit_max_length, rebalance_data, f1_m
 from keras import backend as K
 
 FEATURE_DIM = 37
@@ -26,26 +26,6 @@ trader_x_test_list = x_test['Trader'].unique()
 trader_x_test_list.sort()
 trader_x_test_data = [np.array(x_test[x_test['Trader'] == trader].sort_values(
     by=['Day']).drop(['Trader'], axis=1)) for trader in trader_x_test_list]
-
-
-def recall_m(y_true, y_pred):
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-    recall = true_positives / (possible_positives + K.epsilon())
-    return recall
-
-
-def precision_m(y_true, y_pred):
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + K.epsilon())
-    return precision
-
-
-def f1_m(y_true, y_pred):
-    precision = precision_m(y_true, y_pred)
-    recall = recall_m(y_true, y_pred)
-    return 2*((precision*recall)/(precision+recall+K.epsilon()))
 
 
 class HistoryCheck(keras.callbacks.Callback):

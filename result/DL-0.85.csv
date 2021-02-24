@@ -6,7 +6,7 @@ Alice,HFT
 Alices Sister,NON HFT
 Angel (Experiment 624),NON HFT
 Annette,MIX
-Armoire,MIX
+Armoire,NON HFT
 Arthur/Wart,NON HFT
 Axe,MIX
 Baby Red Bird,MIX
@@ -24,7 +24,7 @@ Bobble,NON HFT
 Bomber Beagle,NON HFT
 Bookseller,NON HFT
 Boomer,NON HFT
-Bowler Hat Guy,NON HFT
+Bowler Hat Guy,MIX
 Braddock,NON HFT
 Brer Bear,NON HFT
 Brudo Avarius,HFT
@@ -38,8 +38,8 @@ Danny,MIX
 Dennis Avarius,NON HFT
 Digger the Mole,NON HFT
 Dijon the Thief,MIX
-Don Karnage,HFT
-Donald Duck,HFT
+Don Karnage,NON HFT
+Donald Duck,NON HFT
 Doug Dalmatian,NON HFT
 Dr. Delbert Doppler,NON HFT
 Dr. Facilier,MIX
@@ -52,13 +52,13 @@ Edric Blight,NON HFT
 Elliott,NON HFT
 Emperor Belos,NON HFT
 Evinrude,HFT
-Fairy Mary,NON HFT
+Fairy Mary,HFT
 Fidget,MIX
-Flash,MIX
+Flash,NON HFT
 Flora,MIX
 Flounder,MIX
 Flunkey the Baboon,NON HFT
-Francis,HFT
+Francis,MIX
 Friend Owl,NON HFT
 Mad Hatter,NON HFT
 Madame Medusa,MIX
@@ -68,7 +68,7 @@ Major the Horse,NON HFT
 Marahute,HFT
 March Hare,NON HFT
 Marlon the Alligator,NON HFT
-Mary Darling,NON HFT
+Mary Darling,MIX
 Mattholomule,NON HFT
 Maui,HFT
 Max the Sheepdog,MIX
@@ -79,8 +79,8 @@ Mike the Microphone,NON HFT
 Miss Bianca,NON HFT
 Miss Nettle,NON HFT
 Moana,NON HFT
-Monstro,MIX
+Monstro,NON HFT
 Morgana,MIX
-The Doorknob,HFT
+The Doorknob,NON HFT
 The Doorman,HFT
 The Magic Mirror,MIX
