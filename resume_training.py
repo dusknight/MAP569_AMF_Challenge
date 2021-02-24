@@ -15,7 +15,7 @@ EPOCH = 70
 LR = 5e-5
 MAX_LEN = 32
 STEPS_PER_EPOCH = 2000
-MODEL_WEIGHT_PATH = 'model/model_weight_84.h5'
+MODEL_WEIGHT_PATH = 'model/'
 ind2type = {0: 'HFT', 1: 'MIX', 2: 'NON HFT'}
 
 x_test = read_x_train('data/AMF_test_X.csv',
@@ -91,6 +91,34 @@ class HistoryCheck(keras.callbacks.Callback):
             f.write(str(self.val_f1_m))
 
 
+def train_generator(trader_data, label_data):
+    while True:
+        rand_ind = np.random.randint(len(label_data))
+        x_train = trader_data[rand_ind].reshape(1, -1, FEATURE_DIM)
+        # y_train will depend on past 5 timesteps of x
+        y_train = np.array(label_data[rand_ind]).reshape(1, -1)
+        yield x_train, y_train
+
+
+x_train = read_x_train('data/AMF_train_X.csv',
+                       includeShare=True, includeDay=True)
+x_train = fill_nan(x_train)
+y_train = pd.read_csv('data/AMF_train_Y.csv')
+
+trader_train_data, label_train_data = dataset_preparation_for_rnn(
+    x_train, y_train)
+
+trader_train_data, label_train_data = limit_max_length(
+    trader_train_data, label_train_data)
+trader_train_data, label_train_data = rebalance_data(
+    trader_train_data, label_train_data)
+
+trader_train_data, label_train_data, trader_test_data, label_test_data = simple_split(
+    trader_train_data, label_train_data)
+
+
+print(len(label_train_data))
+print(len(label_test_data))
 model = keras.Sequential()
 
 model.add(layers.Bidirectional(layers.LSTM(
@@ -114,7 +142,10 @@ model.compile(loss='categorical_crossentropy',
               optimizer=opt, metrics=['accuracy', f1_m])
 
 model.load_weights(MODEL_WEIGHT_PATH)
+model.fit(train_generator(trader_train_data, label_train_data), steps_per_epoch=STEPS_PER_EPOCH, validation_steps=STEPS_PER_EPOCH / 10,
+          epochs=EPOCH, verbose=1, validation_data=train_generator(trader_test_data, label_test_data), callbacks=[historycheck])
 
+model.save_weights('model/model_weight_final.h5')
 ####################################################
 # Evaluate
 ####################################################
@@ -136,7 +167,7 @@ for i, trader in enumerate(trader_x_test_list):
         1 if len(np.where(this_ress == 1)[0])/len(this_ress) >= 0.5 else 2)
     res.append(this_res)
 
-with open('output/model_weight_84.csv', 'w', encoding='utf-8') as f:
+with open('output/final_round.csv', 'w', encoding='utf-8') as f:
     f.write('Trader,type')
     f.write('\n')
     for i, r in enumerate(res):
