@@ -82,10 +82,10 @@ def fill_nan(df: pd.DataFrame, drop_list: list = None) -> pd.DataFrame:
                'mean_dt_TV1_TV4', 'med_dt_TV1_TV4']
     for col_name in dt_list:
         df[col_name] = df[col_name].apply(
-            lambda x: 1/x if pd.notnull(x) else -1)
+            lambda x: 1/x if pd.notnull(x) else 0)
     # df['OMR'] = df['OMR'].fillna(0)
     # df['OTR'] = df['OTR'].fillna(0)
-    df = df.fillna(-1)
+    df = df.fillna(0)
     return df
 
 
