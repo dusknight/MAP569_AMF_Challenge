@@ -1,11 +1,11 @@
 from tensorflow.keras import layers
 from tensorflow import keras
 from tensorflow.python.keras.layers.core import Dropout
-FEATURE_DIM = 37
+FEATURE_DIM = 45
 CROSSVALID_EPOCH = 10
-EPOCH = 200
+EPOCH = 100
 LR = 1e-4
-MAX_LEN = 8
+MAX_LEN = 32
 STEPS_PER_EPOCH = 2000
 BATCH_SIZE = 16
 VALIDATION_WINDOWS_SIZE = 5
@@ -73,16 +73,15 @@ def bulid_model():
     # outputs = layers.Dense(3, activation='softmax')(x)
     # model = keras.Model(inputs, outputs, name="transformer")
     inputs = keras.Input(shape=(None, FEATURE_DIM))
-    x = layers.Masking(mask_value=-1., input_shape=(None, FEATURE_DIM))(inputs)
     x = layers.Bidirectional(layers.LSTM(
-        32, return_sequences=True, input_shape=(None, FEATURE_DIM)), input_shape=(None, FEATURE_DIM))(x)
-    x = layers.MultiHeadAttention(num_heads=8, key_dim=32)(x, x)
+        64, return_sequences=True, input_shape=(None, FEATURE_DIM)), input_shape=(None, FEATURE_DIM))(inputs)
+    x = layers.MultiHeadAttention(num_heads=8, key_dim=64)(x, x)
     x = layers.Dropout(0.2)(x)
-    x = layers.Dense(20, activation='elu')(x)
+    x = layers.Dense(64, activation='elu')(x)
     x = layers.LayerNormalization()(x)
     x = layers.GlobalAveragePooling1D()(x)
     x = layers.Dropout(0.2)(x)
-    x = layers.Dense(10, activation='elu')(x)
+    x = layers.Dense(20, activation='elu')(x)
     x = layers.LayerNormalization()(x)
     x = layers.Dropout(0.2)(x)
     outputs = layers.Dense(3, activation='softmax')(x)

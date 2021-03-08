@@ -19,12 +19,12 @@ ind2type = {0: 'HFT', 1: 'MIX', 2: 'NON HFT'}
 
 # x_test = read_x_train('data/Agmt_test_X.csv',
 #                       includeShare=True, includeDay=True)
-drop_list = ['10_p_time_two_events', '25_p_time_two_events',
-             '75_p_time_two_events', '90_p_time_two_events', '90_p_lifetime_cancel', '10_p_lifetime_cancel', '25_p_lifetime_cancel', '75_p_lifetime_cancel']
+# drop_list = ['10_p_time_two_events', '25_p_time_two_events',
+#              '75_p_time_two_events', '90_p_time_two_events', '90_p_lifetime_cancel', '10_p_lifetime_cancel', '25_p_lifetime_cancel', '75_p_lifetime_cancel']
 x_test = pd.read_csv('data/Agmt_test_X.csv')
-x_test = fill_nan(x_test, drop_list)
-x_train = pd.read_csv('data/Agmt_train_X.csv')
-x_train = fill_nan(x_train, drop_list)
+x_test = fill_nan(x_test)
+x_train = pd.read_csv('data/Agmted_train_X.csv')
+x_train = fill_nan(x_train)
 # x_train, x_test = standardization(x_train, x_test)
 
 
@@ -33,7 +33,7 @@ trader_x_test_list.sort()
 trader_x_test_data = [np.array(x_test[x_test['Trader'] == trader].sort_values(
     by=['Day']).drop(['Trader'], axis=1)) for trader in trader_x_test_list]
 
-y_train = pd.read_csv('data/AMF_train_Y.csv')
+y_train = pd.read_csv('data/Agmted_train_Y.csv')
 
 train, train_label, valid, valid_label = preprocessing_for_dl(x_train, y_train)
 
@@ -88,8 +88,8 @@ for i, trader in enumerate(trader_x_test_list):
         augmented_trader_data, max_length=MAX_LEN)).reshape(-1, MAX_LEN, FEATURE_DIM)
 
     this_ress = np.argmax(model.predict(augmented_trader_data), axis=1)
-    this_res = 0 if len(np.where(this_ress == 0)[0])/len(this_ress) >= 0.85 else (
-        1 if len(np.where(this_ress == 1)[0])/len(this_ress) >= 0.5 else 2)
+    this_res = 0 if len(np.where(this_ress == 0)[0])/len(this_ress) >= 0.7 else (
+        1 if len(np.where(this_ress == 1)[0])/len(this_ress) >= 0.35 else 2)
     res.append(this_res)
 
 with open('output/3-7-final_round.csv', 'w', encoding='utf-8') as f:

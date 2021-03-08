@@ -83,8 +83,6 @@ def fill_nan(df: pd.DataFrame, drop_list: list = None) -> pd.DataFrame:
     for col_name in dt_list:
         df[col_name] = df[col_name].apply(
             lambda x: 1/x if pd.notnull(x) else 0)
-    # df['OMR'] = df['OMR'].fillna(0)
-    # df['OTR'] = df['OTR'].fillna(0)
     df = df.fillna(0)
     return df
 
@@ -227,7 +225,7 @@ def padding_with_0(trader_data: list, max_length=MAX_LEN):
     for i, data in enumerate(trader_data):
         if data.shape[0] < max_length:
             trader_data[i] = np.pad(
-                data, ((0, max_length - data.shape[0]), (0, 0)), 'constant', constant_values=(-1,))
+                data, ((0, max_length - data.shape[0]), (0, 0)), 'constant', constant_values=(0,))
     return trader_data
 
 
