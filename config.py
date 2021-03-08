@@ -1,8 +1,9 @@
 from tensorflow.keras import layers
 from tensorflow import keras
+from tensorflow.python.keras.layers.core import Dropout
 FEATURE_DIM = 37
 CROSSVALID_EPOCH = 10
-EPOCH = 5
+EPOCH = 200
 LR = 1e-4
 MAX_LEN = 16
 STEPS_PER_EPOCH = 2000
@@ -58,18 +59,34 @@ class TransformerBlock(layers.Layer):
 
 
 def bulid_model():
+    # inputs = keras.Input(shape=(None, FEATURE_DIM))
+    # x = layers.Masking(
+    #     mask_value=0., input_shape=(None, FEATURE_DIM))(inputs)
+    # x = TransformerBlock(FEATURE_DIM, 8, 32, rate=0.3)(x)
+    # x = TransformerBlock(FEATURE_DIM, 8, 32, rate=0.3)(x)
+    # # x = TransformerBlock(FEATURE_DIM, 8, 32, rate=0.3)(x)
+    # # x = TransformerBlock(FEATURE_DIM, 8, 32, rate=0.3)(x)
+    # x = layers.GlobalMaxPooling1D()(x)
+    # x = layers.Dropout(0.3)(x)
+    # x = layers.Dense(16, activation='elu')(x)
+    # x = layers.Dropout(0.3)(x)
+    # outputs = layers.Dense(3, activation='softmax')(x)
+    # model = keras.Model(inputs, outputs, name="transformer")
     inputs = keras.Input(shape=(None, FEATURE_DIM))
-    x = layers.core.Masking(mask_value=0., input_shape=(None, FEATURE_DIM))(inputs)
-    x = TransformerBlock(FEATURE_DIM, 8, 64, rate=0.3)(x)
-    x = TransformerBlock(FEATURE_DIM, 8, 64, rate=0.3)(x)
-    x = TransformerBlock(FEATURE_DIM, 8, 64, rate=0.3)(x)
-    x = TransformerBlock(FEATURE_DIM, 8, 64, rate=0.3)(x)
-    x = layers.GlobalMaxPooling1D()(x)
-    x = layers.Dropout(0.3)(x)
-    x = layers.Dense(FEATURE_DIM, activation='elu')(x)
-    x = layers.Dropout(0.3)(x)
+    x = layers.Masking(mask_value=-1., input_shape=(None, FEATURE_DIM))(inputs)
+    x = layers.Bidirectional(layers.LSTM(
+        32, return_sequences=True, input_shape=(None, FEATURE_DIM)), input_shape=(None, FEATURE_DIM))(x)
+    x = layers.MultiHeadAttention(num_heads=8, key_dim=32)(x, x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(20, activation='elu')(x)
+    x = layers.LayerNormalization()(x)
+    x = layers.GlobalAveragePooling1D()(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(10, activation='elu')(x)
+    x = layers.LayerNormalization()(x)
+    x = layers.Dropout(0.2)(x)
     outputs = layers.Dense(3, activation='softmax')(x)
-    model = keras.Model(inputs, outputs, name="transformer")
+    model = keras.Model(inputs, outputs, name="LSTM_Attention")
     # model = keras.Sequential()
     # model.add(layers.Bidirectional(layers.LSTM(
     #     32, return_sequences=True, input_shape=(None, FEATURE_DIM)), input_shape=(None, FEATURE_DIM)))

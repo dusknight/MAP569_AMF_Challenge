@@ -63,7 +63,7 @@ def read_x_train(filename: str, includeTrader=True, includeShare=True, includeDa
     return x_remove
 
 
-def fill_nan(df: pd.DataFrame) -> pd.DataFrame:
+def fill_nan(df: pd.DataFrame, drop_list: list = None) -> pd.DataFrame:
     """Deal with the NaN value in our specific dataFrame.
        Will simply fill the NaN in OMR by 0. For the NaN concerning the dt,
        will do the conversion x -> 1/x then fill the NaN by 0.
@@ -74,15 +74,18 @@ def fill_nan(df: pd.DataFrame) -> pd.DataFrame:
         df: pd.DataFrame
             A dataframe after cleaning
     """
+    if drop_list is not None:
+        df = df.drop(drop_list, axis=1, inplace=False)
     dt_list = ['min_dt_TV1', 'mean_dt_TV1', 'med_dt_TV1', 'min_dt_TV1_TV2',
                'mean_dt_TV1_TV2', 'med_dt_TV1_TV2', 'min_dt_TV1_TV3',
                'mean_dt_TV1_TV3', 'med_dt_TV1_TV3', 'min_dt_TV1_TV4',
                'mean_dt_TV1_TV4', 'med_dt_TV1_TV4']
-    df['OMR'] = df['OMR'].fillna(0)
-    df['OTR'] = df['OTR'].fillna(0)
     for col_name in dt_list:
         df[col_name] = df[col_name].apply(
-            lambda x: 1/x if pd.notnull(x) else 0)
+            lambda x: 1/x if pd.notnull(x) else -1)
+    # df['OMR'] = df['OMR'].fillna(0)
+    # df['OTR'] = df['OTR'].fillna(0)
+    df = df.fillna(-1)
     return df
 
 
@@ -171,7 +174,7 @@ def limit_max_length(trader_data: list, label_data: list, max_length=MAX_LEN):
             while p + max_length < data.shape[0]:
                 augmented_trader_data.append(data[p:p+max_length, :])
                 augmented_label_data.append(label_data[i])
-                p += 2
+                p += MAX_LEN // 2
             augmented_trader_data.append(data[p:, :])
             augmented_label_data.append(label_data[i])
         else:
@@ -224,7 +227,7 @@ def padding_with_0(trader_data: list, max_length=MAX_LEN):
     for i, data in enumerate(trader_data):
         if data.shape[0] < max_length:
             trader_data[i] = np.pad(
-                data, ((0, max_length - data.shape[0]), (0, 0)), 'constant')
+                data, ((0, max_length - data.shape[0]), (0, 0)), 'constant', constant_values=(-1,))
     return trader_data
 
 
@@ -246,6 +249,21 @@ def train_test_splits(train, label, split_day):
             train_data.append(t_data)
             train_label_data.append(label[i])
     return train_data, train_label_data, test_data, test_label_data
+
+
+def preprocessing_for_dl(origin_train: pd.DataFrame, origin_label: pd.DataFrame):
+    train, label_train = rebalance_data(*limit_max_length(*dataset_preparation_for_rnn(
+        origin_train, origin_label), max_length=MAX_LEN), max_length=MAX_LEN)
+    train = padding_with_0(train, max_length=MAX_LEN)
+
+    train, label_train, test, label_test = simple_split(
+        train, label_train)
+    train = np.array(train).reshape(-1, MAX_LEN, FEATURE_DIM)
+    train_label = np.array(label_train).reshape(-1, 3)
+    test = np.array(test).reshape(-1, MAX_LEN, FEATURE_DIM)
+    label_test = np.array(label_test).reshape(-1, 3)
+
+    return train, train_label, test, label_test
 
 
 def preprocessing_for_cross_valid(origin_train: pd.DataFrame, origin_label: pd.DataFrame, window_size=VALIDATION_WINDOWS_SIZE):
