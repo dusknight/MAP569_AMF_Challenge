@@ -2,9 +2,9 @@ import pandas as pd
 
 
 def additional_training_data(x_train: pd.DataFrame, x_test: pd.DataFrame, y_train: pd.DataFrame, y_test: pd.DataFrame):
-    y_train.append(y_test)
+    y_train = y_train.append(y_test)
     for k in y_test.Trader:
-        x_train.append(x_test[x_test['Trader'] == k])
+        x_train = x_train.append(x_test[x_test['Trader'] == k])
     return x_train, y_train
 
 
