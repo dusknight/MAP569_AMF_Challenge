@@ -1,3 +1,4 @@
+from re import L
 from helper import read_x_train, fill_nan, dataset_preparation_for_rnn, limit_max_length, rebalance_data, padding_with_0
 import pandas as pd
 from collections import Counter
@@ -53,6 +54,10 @@ def test_padding():
     trader_train_data = padding_with_0(trader_train_data)
     length_set = set([data.shape for data in trader_train_data])
     print(length_set)
+
+
+def test_split():
+    pass
 
 
 test_padding()
